@@ -1,6 +1,6 @@
 import pytest
 
-from data_loader import *
+from agnostic_loader.data_loader import *
 
 PATH = os.path.join(os.path.dirname(__file__), "resources")
 
