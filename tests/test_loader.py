@@ -5,7 +5,7 @@ from data_loader import *
 PATH = os.path.join(os.path.dirname(__file__), "resources")
 
 
-@pytest.fixture(scope="module")
+@pytest.yield_fixture(scope="module")
 def setup():
     to_gzip = [os.path.join(PATH, "input", "gz_file_json"),
                os.path.join(PATH, "input", "gz_file_csv")]
