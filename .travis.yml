@@ -6,4 +6,4 @@ python:
 install:
   - pip install pytest
 
-script: pytest tests/
+script: python -m pytest tests/
