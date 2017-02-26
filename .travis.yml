@@ -4,3 +4,6 @@ python:
   - "2.7"
 
 script: python -m pytest agnostic_loader/tests/ -c /dev/null
+
+after_success:
+  - ./.travis.sh
