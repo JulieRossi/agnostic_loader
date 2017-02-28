@@ -26,8 +26,8 @@ except ImportError:
     json.DecodeError = ValueError
 
 
-def is_json_file(filename):
-    with open(filename, "r") as f:
+def is_json_by_line_file(input_arg):
+    with open(input_arg, "r") as f:
         try:
             json.loads(f.readline())
             return True
@@ -35,126 +35,115 @@ def is_json_file(filename):
             return False
 
 
-def find_input_type(input_arg):
+def find_input_loader(input_arg):
     if isinstance(input_arg, dict):
-        return 'dict'
+        return _DictLoader
     if isinstance(input_arg, basestring):
         try:
             json.loads(input_arg)
-            return "json"
+            return _JsonLoader
         except json.DecodeError:
             if os.path.isfile(input_arg):
-                if os.path.splitext(input_arg)[-1] == ".gz":
-                    return "gzip"
-                if is_json_file(input_arg):
-                    return "json_file"
-                return "csv_file"
+                try:
+                    with gzip.open(input_arg, "r") as f:
+                        f.read(1)
+                    return _GzLoader
+                except IOError:
+                    if is_json_by_line_file(input_arg):
+                        return _JsonLineFileLoader
+                    return _CsvFileLoader
             if os.path.exists(input_arg):
-                return "dir"
+                return _DirLoader
     if hasattr(input_arg, "__iter__"):
-        return "iter"
-    return None
+        return _GenericIterableLoader
+    return _CsvLoader
 
 
 class DataLoader(object):
     __metaclass__ = abc.ABCMeta
 
-    def __new__(cls, filename):
-        input_type = find_input_type(filename)
-        for sub in cls.__subclasses__():
-            if sub.is_designed_for(input_type):
-                o = object.__new__(sub)
-                o.__init__(filename)
-                return o
+    def __new__(cls, input_data):
+        o = object.__new__(find_input_loader(input_data))
+        o.__init__(input_data)
+        return o
 
-    def __init__(self, filename):
-        self.filename = filename
-
-    @classmethod
-    def is_designed_for(cls, ext):
-        if ext == cls.input_type:
-            return True
-        return False
+    def __init__(self, input_data):
+        self.input_data = input_data
 
     @abc.abstractmethod
     def load(self):
         return
 
 
-class GzLoader(DataLoader):
-    input_type = "gzip"
+class _GzLoader(DataLoader):
 
     def __init__(self, *args, **kwargs):
         self.loader = None
-        super(GzLoader, self).__init__(*args, **kwargs)
+        super(_GzLoader, self).__init__(*args, **kwargs)
 
     def load(self):
-        with gzip.open(self.filename, "r") as f:
+        with gzip.open(self.input_data, "r") as f:
             for line in f:
                 try:
-                    self.loader.filename = line
+                    self.loader.input_data = line
                 except AttributeError:
                     self.loader = DataLoader(line)
                     if self.loader is None:
-                        self.loader = CsvFakeLoader(line)
-                yield self.loader.load().next()
+                        self.loader = _CsvLoader(line)
+                yield self.loader.load().next()  # there is only one line in loader.load generator
 
 
-class JsonFileLoader(DataLoader):
-    input_type = "json_file"
+class _JsonLineFileLoader(DataLoader):
 
     def load(self):
-        with open(self.filename, "r") as f:
+        with open(self.input_data, "r") as f:
             for line in f:
                 yield json.loads(line)
 
 
-class CsvFileLoader(DataLoader):
-    input_type = "csv_file"
+class _CsvFileLoader(DataLoader):
 
     def load(self):
-        with open(self.filename, "r") as f:
+        with open(self.input_data, "r") as f:
             reader = csv.reader(f, delimiter=",")
             for line in reader:
                 yield line
 
 
-class JsonLoader(DataLoader):
-    input_type = "json"
+class _JsonLoader(DataLoader):
 
     def load(self):
-        yield json.loads(self.filename)
+        yield json.loads(self.input_data)
 
 
-class CsvFakeLoader(object):
-    def __init__(self, filename):
-        self.filename = filename
+class _CsvLoader(DataLoader):
 
     def load(self):
-        yield self.filename.strip("\n").split(",")
+        yield self.input_data.strip("\n").split(",")
 
 
-class DictLoader(DataLoader):
-    input_type = 'dict'
-
-    def load(self):
-        yield self.filename
-
-
-class DirLoader(DataLoader):
-    input_type = "dir"
+class _DictLoader(DataLoader):
 
     def load(self):
-        for fic in os.listdir(self.filename):
-            fullname = os.path.join(self.filename, fic)
-            loader = DataLoader(fullname)
-            for elt in loader.load():
-                yield elt
+        yield self.input_data
 
 
-class GenericIterableLoader(DataLoader):
-    input_type = "iter"
+class _DirLoader(DataLoader):
+
+    def filter_on_filename(self, *args, **kwargs):
+        return True
 
     def load(self):
-        for elt in self.filename:
+        for fic in os.listdir(self.input_data):
+            if self.filter_on_filename(fic):
+                fullname = os.path.join(self.input_data, fic)
+                loader = DataLoader(fullname)
+                for elt in loader.load():
+                    yield elt
+
+
+class _GenericIterableLoader(DataLoader):
+
+    def load(self):
+        for elt in self.input_data:
             yield elt
