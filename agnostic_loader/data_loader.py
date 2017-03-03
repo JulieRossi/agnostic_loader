@@ -272,7 +272,7 @@ class _DirLoader(DataLoader):
         :return: yield each line in each file in self.input_data,
                     using the right load method (gz, json or csv)
         """
-        for fic in os.listdir(self.input_data):
+        for fic in sorted(os.listdir(self.input_data)):
             if self.filter_on_filename(fic):
                 fullname = os.path.join(self.input_data, fic)
                 loader = DataLoader(fullname)
