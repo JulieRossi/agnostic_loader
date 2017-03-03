@@ -10,7 +10,7 @@ This module supplies DataLoader class that indifferently loads data from
 - gz file (recursively json or csv on each line of the file)
 - directory (recursively loads each file)
 
-Note that csv is
+Note that csv is expected to have comma as delimiter.
 """
 
 import abc
@@ -86,7 +86,7 @@ def find_input_loader(input_arg):
 
 class DataLoader(object):
     """
-    Factory that will be instanciated with the right loader (from private subclasses).
+    Factory that will be instantiated with the right loader (from private subclasses).
 
     Public attributes:
     input_data: raw input that needs to be loaded
