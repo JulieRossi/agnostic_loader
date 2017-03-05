@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='agnostic_loader',
-      version='0.2',
+      version='0.3.1',
       description='Load data from different input sources',
       url='https://github.com/JulieRossi/agnostic_loader.git',
       author='Julie Rossi',

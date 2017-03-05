@@ -9,6 +9,6 @@ then
 
     pip install twine --upgrade
     python setup.py sdist
-    twine upload -u ${TWINE_USER} -p ${TWINE_PWD} -r https://pypi.python.org/pypi dist/*
+    twine upload -u ${TWINE_USER} -p ${TWINE_PWD} -r pypi dist/*
 
 fi
