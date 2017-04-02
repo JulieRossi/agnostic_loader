@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/JulieRossi/agnostic_loader.svg?branch=master)](https://travis-ci.org/JulieRossi/agnostic_loader)
 
-#AGNOSTIC LOADER
+# AGNOSTIC LOADER
 
 Indifferently load and yield data from any type of input among the following:
 
