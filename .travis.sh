@@ -4,7 +4,7 @@ set -e
 
 cd $(dirname $0)
 
-if [ "$TRAVIS_BRANCH" == "release" ]
+if [ -n "$TRAVIS_TAG" ]
 then
 
     pip install twine --upgrade
