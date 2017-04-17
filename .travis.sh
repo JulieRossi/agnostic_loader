@@ -8,6 +8,7 @@ if [ -n "$TRAVIS_TAG" ]
 then
 
     pip install twine --upgrade
+    python prepare_setup.py
     python setup.py sdist
     twine upload -u ${TWINE_USER} -p ${TWINE_PWD} -r pypi dist/*
 

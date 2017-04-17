@@ -5,3 +5,4 @@
 /agnostic_loader/tests/.cache/
 /agnostic_loader.egg-info/
 /dist/
+/setup.py
